@@ -1,0 +1,133 @@
+//EXAMPLE QUERY
+query GetGames {
+  games {
+    title,
+    platform
+  }
+}
+
+//EXAMPLE QUERY WITH SENT ARGUMENTS (PARAMETARS)
+query GetReviewById($id: ID!) {
+  review(id: $id) {
+    rating
+    content
+  }
+}
+
+variables = {
+  id: "1"
+}
+
+=> primjer kako bi izgledalo unutar frontend aplikacije: 
+  fetch('http://localhost:4000', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      query,
+      variables,
+    }),
+  })
+
+//EXAMPLES NESTED QUERIES
+query GameQuery($id: ID!) {
+  game(id: $id) {
+    id,
+    title,
+    reviews {
+      id,
+      rating,
+      content
+    }
+  }
+}
+
+query ReviewQuery($id: ID!) {
+  review(id: $id) {
+    id,
+    rating,
+    content,
+    author {
+      id,
+      name
+    }
+    game {
+      id,
+      title
+    }
+  }
+}
+
+query ExpandedReviewQuery($id: ID!) {
+  review(id: $id) {
+    id,
+    rating,
+    content,
+    author {
+      id,
+      name,
+      reviews {
+        id,
+        rating, 
+        content
+      }
+    }
+    game {
+      id,
+      title,
+      reviews {
+        id,
+        rating, 
+        content
+      }
+    }
+  }
+}
+
+
+//UNDERFETCHING
+
+// Potrebna 3 odvojena zahtjeva za kompletnu narudžbu
+const review = await fetch('/review/1');
+const author = await fetch(`/author/${review.authorId}`);
+const game = await fetch(`/game/${review.gameId}`);
+
+// GraphQL rjesenje
+query ReviewQuery($id: ID!) {
+  review(id: $id) {
+    id,
+    rating,
+    content,
+    author {
+      id,
+      name
+    }
+    game {
+      id,
+      title
+    }
+  }
+}
+
+//OVERFETCHING
+
+// Dobijem SVE podatke o recenziji, a treba mi samo rating
+const review = await fetch('/review/1');
+// {id: "1", rating: 9, content: "...", authorId: "1", gameId: "1"}
+
+// GraphQL rjesenje
+query GetReviewRating($id: ID!) {
+  review(id: $id) {
+    rating
+  }
+}
+
+//MUTATIONS
+mutation DeleteGame($id: ID!) {
+  deleteGame(id: $id) {
+    id,
+    title,
+    platform
+  }
+}
